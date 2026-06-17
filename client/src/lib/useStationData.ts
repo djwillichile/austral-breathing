@@ -103,6 +103,38 @@ export interface TimeseriesPayload {
   daily: Record<string, number | string | null>[];
 }
 
+// Rigorous environmental representativeness (scripts_representativeness_analysis.py).
+export interface RepresentativenessGrid {
+  method: string;
+  source: string;
+  synthetic: boolean;
+  variables: { id: string; label: string }[];
+  bbox: { lon_min: number; lon_max: number; lat_min: number; lat_max: number };
+  resolutionDeg: number;
+  thresholdSd: number;
+  coverageFraction: number;
+  regionAreaKm2: number;
+  nStations: number;
+  nValidCells: number;
+  grid: {
+    latStart: number;
+    lonStart: number;
+    dLat: number;
+    dLon: number;
+    nLat: number;
+    nLon: number;
+    rep: (number | null)[];
+  };
+  perStation: {
+    siteId: string;
+    biome: string;
+    representativeAreaKm2: number;
+    representativeAreaPct: number;
+    assignedAreaKm2: number;
+    medianDissimilarity: number;
+  }[];
+}
+
 function dataUrl(path: string): string {
   // import.meta.env.BASE_URL ends with "/" (e.g. "/eddy-patagonia-chile/").
   return `${import.meta.env.BASE_URL}data/${path}`;
@@ -151,4 +183,34 @@ export function useStats() {
 
 export function useTimeseries(siteId: string | null) {
   return useJson<TimeseriesPayload>(siteId ? `timeseries/${siteId}.json` : null);
+}
+
+// Optional: only present once the representativeness analysis has been run.
+// A missing file resolves to an error/null state and the UI degrades gracefully.
+export function useRepresentativenessGrid() {
+  return useJson<RepresentativenessGrid>("representativeness_grid.json");
+}
+
+/** Diverging score → colour ramp (red = poorly represented, green = well). */
+export function representativenessColor(score: number): string {
+  const t = Math.max(0, Math.min(1, score));
+  // Interpolate copper/red (#9D3D2C) → amber (#C78C1B) → forest (#2F6B3B).
+  const stops: [number, [number, number, number]][] = [
+    [0, [157, 61, 44]],
+    [0.5, [199, 140, 27]],
+    [1, [47, 107, 59]],
+  ];
+  let lo = stops[0];
+  let hi = stops[stops.length - 1];
+  for (let i = 0; i < stops.length - 1; i++) {
+    if (t >= stops[i][0] && t <= stops[i + 1][0]) {
+      lo = stops[i];
+      hi = stops[i + 1];
+      break;
+    }
+  }
+  const span = hi[0] - lo[0] || 1;
+  const f = (t - lo[0]) / span;
+  const c = lo[1].map((v, k) => Math.round(v + (hi[1][k] - v) * f));
+  return `rgb(${c[0]}, ${c[1]}, ${c[2]})`;
 }
