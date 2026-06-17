@@ -1,0 +1,44 @@
+# South American carbon-STOCK observation programs
+# -------------------------------------------------
+# Networks and programs that measure carbon STOCK (aboveground biomass, peat, and
+# soil carbon) -- distinct from the eddy-covariance flux towers in
+# south_america_flux_towers.csv. These are mostly spatially distributed
+# plot/inventory networks rather than single points, so coordinates are omitted;
+# they document the complementary half of the carbon-observation infrastructure
+# and feed Phase-2 data-access outreach.
+#
+# Columns:
+#   program            program / network name
+#   stock_type         biomass | peat | soil | lidar-biomass | blue-carbon | mixed
+#   countries          coverage
+#   measures           what is quantified
+#   institution        lead institution
+#   availability_tier  1=open/archived  2=published/managed-access  3=national/restricted
+#   data_access        how the data are obtained
+#   confidence         high | medium | low
+#   source_url         primary source
+program,stock_type,countries,measures,institution,availability_tier,data_access,confidence,source_url
+RAINFOR,biomass,"Brazil,Peru,Bolivia,Colombia,Ecuador,Venezuela,Guyana,French Guiana,Suriname",Aboveground biomass stock & change (carbon sink) from ~309-321 permanent plots,University of Leeds (Phillips/Brienen),2,ForestPlots.net managed access (register + request; co-authorship norms),high,https://rainfor.org/en/
+ForestPlots.net,biomass,Pan-tropical (SA subset = RAINFOR),Plot biomass/dynamics platform (>8800 plots globally),University of Leeds (LEAF),2,Register + request; PI-set access,high,https://forestplots.net/
+GEM (Global Ecosystems Monitoring),mixed,"Peru,Bolivia",Stock + full NPP/productivity components (intensive plots; Andes-Amazon transect),University of Oxford (Malhi),2,Project/GEM portal; request,high,http://gem.tropicalforests.ox.ac.uk/
+TmFO,biomass,"Brazil,French Guiana",Biomass change & carbon balance in logged/managed forests,CIRAD (coordinator),2,Consortium managed access,high,https://tmfo.org/
+Guyafor,biomass,French Guiana,"AGB & forest dynamics (Paracou, Nouragues)",CIRAD/CNRS,1,CIRAD Dataverse (DOI 10.18167/DVN1/WDLCRH; open),high,https://paracou.cirad.fr/
+IFN Brazil (SFB),biomass,Brazil,National forest inventory: AGB + necromass + litter + soil,Servico Florestal Brasileiro,1,SNIF portal (aggregated open; raw plots restricted),high,https://snif.florestal.gov.br/pt-br/inventario-florestal-nacional-ifn
+SIMEF / Inventario Chile,biomass,Chile,Native-forest biomass/carbon & land-use change,CONAF + INFOR + CIREN,2,National program / REDD+ reporting,medium,https://www.fao.org/chile/news-and-opinion/news/detail/Chile-adopta-sistema-de-monitoreo-de-ecosistemas-forestales-apoyado-por-FAO/es
+INBN Argentina,biomass,Argentina,National native-forest inventory (~3800 plots): AGB + soil C + litter,Min. Ambiente y Desarrollo Sostenible,2,Published reports / request,high,https://www.argentina.gob.ar/ambiente/bosques/segundo-inventario-nacional-bosques-nativos
+INFFS Peru,biomass,Peru,National forest & wildlife inventory; carbon by ecozone,SERFOR + FAO,1,SNIFFS national portal,high,https://sniffs.serfor.gob.pe/inventarios/pu/panel1/index.html
+IFN Colombia,biomass,Colombia,National forest inventory (~1900 clusters): biomass + soil/woody-debris C,IDEAM,1,SIAC / IDEAM portals,high,https://www.ideam.gov.co/nuestra-entidad/ecosistemas-e-informacion-ambiental/sistema-nacional-de-informacion-forestal-ifn
+ENF Ecuador,biomass,Ecuador,National forest assessment (1639 plots): carbon across all pools,Ministerio del Ambiente (MAE),1,ENF carbon map portal,high,https://enf.ambiente.gob.ec/web_enf/?page_id=702
+Inventario Forestal Bolivia,biomass,Bolivia,Biomass & stored carbon by ecoregion,ABT / IBIF,2,ITTO reports / national,medium,https://www.itto.int/files/itto_project_db_input/2122/technical/INFORME-INVENTARIOS%20FORESTALES.pdf
+IFN Paraguay (INFONA),biomass,Paraguay,"National forest inventory (236 plots, 3rd cycle): biomass + DOM + soil",INFONA + UNDP,2,National portal (launching),high,https://www.undp.org/es/paraguay/publicaciones/inventario-forestal-nacional-ifn
+PELD / PPBio (RAPELD),biomass,Brazil,LTER carbon-stock change in biomass/necromass/litter,CNPq/MCTI; INPA/CENBAM,1,PPBio repository (ppbio.inpa.gov.br),high,https://ppbio.inpa.gov.br/parceiros/peldamazonia
+Pastaza-Maranon peat,peat,Peru,Peat carbon stock (~3.1-5.4 Pg C),U. Leeds / U. St Andrews / IIAP,2,Open maps (CEH/EIDC) + papers,high,https://www.nature.com/articles/s41561-022-00923-4
+Andean & lowland peat (Colombia/Ecuador),peat,"Colombia,Ecuador",Peat carbon stocks (paramo + lowlands),Eawag / Michigan Tech / USFQ,2,Papers + theses (partly open),medium,https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2024JG008505
+Patagonian/Tierra del Fuego peat,peat,"Chile,Argentina",Peat C stock (~119-141 kg C/m2),Academic project-based sampling,2,Papers (Frontiers OA),high,https://www.frontiersin.org/journals/ecology-and-evolution/articles/10.3389/fevo.2020.00273/full
+SISLAC,soil,All Latin America,Soil organic carbon (~49000 profiles),FAO LAC Soil Partnership,1,Open portal + ESSD 2024,high,https://essd.copernicus.org/articles/16/1229/2024/
+SISINTA (INTA),soil,Argentina,National soil database / SOC,INTA,1,sisinta.inta.gob.ar (open),high,https://sisinta.inta.gob.ar
+Embrapa SOC map,soil,Brazil,Soil organic carbon stock 0-30 cm,Embrapa,1,Embrapa GeoInfo download,high,https://www.embrapa.br/en/busca-de-publicacoes/-/publicacao/1085127/
+SoilGrids 2.0 / WoSIS,soil,Global incl. all SA,Gridded SOC stock 250 m,ISRIC,1,isric.org (open),high,https://isric.org/explore/soilgrids
+Sustainable Landscapes Brazil,lidar-biomass,Brazil,Airborne LiDAR -> AGB/carbon (2008-2018),EMBRAPA + USDA Forest Service + NASA CMS,1,"ORNL DAAC (open, Earthdata)",high,https://daac.ornl.gov/CMS/guides/LiDAR_Forest_Inventory_Brazil.html
+GEDI L4A,lidar-biomass,Continental (all SA),Spaceborne footprint AGB density,NASA / ORNL DAAC,1,Earthdata / ORNL DAAC (open),high,https://daac.ornl.gov/GEDI/guides/GEDI_L4A_AGB_Density_V2.html
+Brazilian mangrove blue carbon,blue-carbon,Brazil,Mangrove soil + vegetation C stock,Various (Hatje et al.),2,Papers (partly open),medium,https://aslopubs.onlinelibrary.wiley.com/doi/10.1002/lno.11607

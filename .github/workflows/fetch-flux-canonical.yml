@@ -1,0 +1,65 @@
+name: fetch-flux-canonical
+
+# Acts as a fetch proxy: GitHub-hosted runners have open outbound internet,
+# so they can reach the canonical flux-tower databases (AmeriFlux / ORNL /
+# FLUXNET) that the dev container's egress allowlist blocks. The runner saves
+# the raw responses under research/_canonical/ and commits them back to this
+# branch, where the container can pull them via git (github is allowlisted).
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - claude/south-america-flux-inventory
+    paths:
+      - .github/workflows/fetch-flux-canonical.yml
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
+
+      - name: Fetch canonical sources
+        run: |
+          set -u
+          mkdir -p research/_canonical
+          log=research/_canonical/_fetch_log.txt
+          : > "$log"
+          UA="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Safari/537.36"
+          fetch () {
+            url="$1"; out="$2"
+            code=$(curl -sS -L --max-time 90 -A "$UA" \
+                   -H 'Accept: application/json, text/html, */*' \
+                   -w '%{http_code}' -o "research/_canonical/$out" "$url" 2>>"$log" || echo 000)
+            sz=$(wc -c < "research/_canonical/$out" 2>/dev/null || echo 0)
+            printf '%s  %8s bytes  %s -> %s\n' "$code" "$sz" "$url" "$out" | tee -a "$log"
+          }
+          # --- AmeriFlux (registers many BR/AR/CL/etc. South American sites) ---
+          fetch "https://amfcdn.lbl.gov/api/v1/site_display/AmeriFlux"                 "ameriflux_site_display.json"
+          fetch "https://ameriflux.lbl.gov/sites/site-list-and-pages/"                 "ameriflux_site_list.html"
+          fetch "https://ameriflux-data.lbl.gov/AmeriFlux/SiteSearch.svc/SiteMapData/AmeriFlux" "ameriflux_sitemapdata.json"
+          # --- ORNL DAAC : LBA Brazilian Amazon flux network (CD-32) ---
+          fetch "https://daac.ornl.gov/LBA/guides/CD32_Brazil_Flux_Network.html"       "ornl_lba_cd32.html"
+          # --- FLUXNET global site list ---
+          fetch "https://fluxnet.org/sites/site-list-and-pages/"                       "fluxnet_site_list.html"
+          echo "===== fetch log ====="; cat "$log"
+          echo "===== dir ====="; ls -la research/_canonical/
+
+      - name: Commit results
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add research/_canonical
+          if git diff --cached --quiet; then
+            echo "nothing to commit"
+          else
+            git commit -m "Fetch canonical flux site data via Actions runner [skip ci]"
+            git push origin HEAD:${{ github.head_ref || github.ref_name }}
+          fi

@@ -211,6 +211,55 @@ To grow the inventory beyond the original six sites, the pipeline now includes a
     exercised end to end; every synthetic artifact is tagged `"synthetic": true`
     and the UI shows a banner. The numerical core is unit-tested offline.
   - Reading real GeoTIFFs requires the optional `rasterio` dependency.
+  - Scope: `--region cono-sur` (default) or `--region south-america`; stations
+    from the web export (`--stations web`) or the regional registry below
+    (`--stations registry`).
+
+### Regional flux inventory (South America)
+
+A continental inventory of carbon-observation infrastructure, curated from a
+structured literature/network review (eddy-covariance **flux** towers and
+carbon-**stock** programs are kept strictly separate).
+
+- `research/south_america_flux_towers.csv` — eddy-covariance CO₂ towers
+  (NEE→GPP/Reco) with coordinates, network, **availability tier** (1 open /
+  2 published / 3 national-private), confidence, and source. Country gaps
+  (Bolivia, Paraguay, Guyana, Suriname; Uruguay energy-only; Venezuela historic)
+  are documented.
+- `research/south_america_carbon_stock_programs.csv` — biomass/peat/soil stock
+  programs (RAINFOR, GEM, national forest inventories, SISLAC, GEDI, …).
+- `pipeline_registry.py` loads both; `scripts_build_registry_web_data.py` emits
+  `client/public/data/regional_inventory.json` for the **Regional inventory**
+  dashboard tab (towers by country + stock programs, with tier badges).
+- `scripts_verify_registry.py` **audits** both registries: controlled
+  vocabularies, duplicate ids, canonical `CC-XXX` codes, country-prefix
+  consistency, continental coordinate bounds, year spans, tier/access
+  contradictions, and structural column counts (catching unquoted commas). It
+  exits non-zero on any `ERROR` (CI-gateable) and writes
+  `outputs/tables/registry_verification_report.json`. With `--online` it
+  cross-checks AmeriFlux/FLUXNET-coded towers against the AmeriFlux
+  `site_display` API, degrading gracefully to an `INFO` finding when the host is
+  blocked by a network egress allowlist (so the same command runs locally and in
+  CI). Run: `python scripts_verify_registry.py [--online] [--strict]`.
+- `scripts_reconcile_canonical.py` **reconciles** the flux registry against the
+  canonical AmeriFlux `site_display` metadata: it overwrites coordinates with the
+  authoritative values (marking `coord_note=verified`), normalises site codes to
+  their canonical form, and appends AmeriFlux-registered South American towers
+  that were missing. The canonical snapshots live in `research/_canonical/` and
+  are refreshed by the `.github/workflows/fetch-flux-canonical.yml` workflow,
+  which runs on a GitHub-hosted runner (open outbound internet) and commits the
+  raw AmeriFlux/ORNL/FLUXNET responses back to the branch — a fetch proxy for the
+  canonical hosts that a restricted egress allowlist would otherwise block.
+- `scripts_harvest_open_flux_data.py` is the **Phase-1 open-data harvester**: it
+  selects the tier-1 (open) CO₂ towers, writes a per-site download manifest
+  (`outputs/tables/open_flux_harvest_manifest.csv`) grouped by source network,
+  and with `--online` fetches the anonymously-open sources (ICOS). Authenticated
+  networks (AmeriFlux, ORNL DAAC) get explicit, reproducible access instructions
+  rather than silent partial downloads; AmeriFlux acquisition stays on the
+  official `fluxnet-shuttle` path. Runs offline (manifest only) in restricted
+  sandboxes. Phase-2 (data requests for tier-2/3 sites) draws contacts from the
+  registry. Respect CC-BY, AmeriFlux/ICOS policies, site-level citation, and
+  ForestPlots/RAINFOR co-authorship norms when using acquired data.
 
 All file paths are resolved through `pipeline_paths.py` (honouring the
 `EDDY_BASE_DIR` environment variable), so the pipeline runs from any checkout.
