@@ -1,7 +1,8 @@
-import { Activity, BarChart3, Compass, Map as MapIcon } from "lucide-react";
+import { Activity, BarChart3, Compass, Library, Map as MapIcon } from "lucide-react";
 import { BiomeCoverageChart } from "@/components/charts/BiomeCoverageChart";
 import { ClimateRepresentativeness } from "@/components/charts/ClimateRepresentativeness";
 import { EnvironmentalSpaceChart } from "@/components/charts/EnvironmentalSpaceChart";
+import { RegionalInventory } from "@/components/charts/RegionalInventory";
 import { TimeSeriesChart } from "@/components/charts/TimeSeriesChart";
 import { VariabilityChart } from "@/components/charts/VariabilityChart";
 import { LeafletMap } from "@/components/LeafletMap";
@@ -54,6 +55,7 @@ const TABS = [
   { value: "statistics", label: "Statistics", icon: BarChart3 },
   { value: "map", label: "Map", icon: MapIcon },
   { value: "representativeness", label: "Representativeness", icon: Compass },
+  { value: "inventory", label: "Regional inventory", icon: Library },
 ];
 
 /**
@@ -99,6 +101,10 @@ export function AnalysisDashboard() {
           <BiomeCoverageChart />
         </div>
         <GeographicReach />
+      </TabsContent>
+
+      <TabsContent value="inventory" className="space-y-8">
+        <RegionalInventory />
       </TabsContent>
     </Tabs>
   );

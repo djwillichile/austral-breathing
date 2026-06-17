@@ -191,6 +191,61 @@ export function useRepresentativenessGrid() {
   return useJson<RepresentativenessGrid>("representativeness_grid.json");
 }
 
+// South American carbon-observation registry (scripts_build_registry_web_data.py).
+export interface FluxTowerRecord {
+  siteId: string;
+  country: string;
+  siteName: string;
+  lat: number | null;
+  lon: number | null;
+  biome: string;
+  network: string;
+  yearStart: number | null;
+  yearEnd: number | null;
+  measuresCo2: string;
+  tier: number | null;
+  dataAccess: string;
+  institution: string;
+  confidence: string;
+  sourceUrl: string;
+}
+
+export interface StockProgramRecord {
+  program: string;
+  stockType: string;
+  countries: string;
+  measures: string;
+  institution: string;
+  tier: number | null;
+  dataAccess: string;
+  confidence: string;
+  sourceUrl: string;
+}
+
+export interface RegionalInventory {
+  fluxTowers: FluxTowerRecord[];
+  stockPrograms: StockProgramRecord[];
+  fluxGapCountries: string[];
+  summary: {
+    fluxTowersCo2: number;
+    fluxTowersOpen: number;
+    byCountry: Record<string, number>;
+    byTier: Record<string, number>;
+    stockPrograms: number;
+  };
+}
+
+export function useRegionalInventory() {
+  return useJson<RegionalInventory>("regional_inventory.json");
+}
+
+/** Availability-tier label + colour (1 open · 2 published · 3 private). */
+export const TIER_META: Record<number, { label: string; color: string }> = {
+  1: { label: "Open / archived", color: "#2F6B3B" },
+  2: { label: "Published", color: "#C78C1B" },
+  3: { label: "National / private", color: "#9D3D2C" },
+};
+
 /** Diverging score → colour ramp (red = poorly represented, green = well). */
 export function representativenessColor(score: number): string {
   const t = Math.max(0, Math.min(1, score));

@@ -56,10 +56,17 @@ from pipeline_paths import CLIENT_PUBLIC_DATA_DIR, DATA_DIR
 # --------------------------------------------------------------------------
 # Region + variable configuration
 # --------------------------------------------------------------------------
-# Southern Cone bounding box (lon/lat in degrees). Comfortably contains every
-# current station, from the Argentine pampas comparator (AR-CCg, ~-35.9) down to
-# Tierra del Fuego (AR-TF1/2, ~-55).
-REGION_BBOX = {"lon_min": -76.0, "lon_max": -52.0, "lat_min": -56.0, "lat_max": -30.0}
+# Named regions (lon/lat bounding boxes, degrees). "cono-sur" comfortably
+# contains the original Southern-Cone stations (AR-CCg ~-35.9 down to Tierra del
+# Fuego ~-55); "south-america" spans the continent for the regional inventory.
+REGIONS = {
+    "cono-sur": {"lon_min": -76.0, "lon_max": -52.0, "lat_min": -56.0, "lat_max": -30.0},
+    "south-america": {"lon_min": -82.0, "lon_max": -34.0, "lat_min": -56.0, "lat_max": 13.0},
+}
+
+# Default region (kept as a module global so the grid/sampling helpers can read
+# it; ``main`` overrides it from --region).
+REGION_BBOX = REGIONS["cono-sur"]
 
 # WorldClim 2.1 bioclimatic variables used as the environmental axes. Mean and
 # seasonality of both temperature and precipitation capture the dominant
@@ -405,6 +412,24 @@ def load_stations() -> list[dict]:
     return payload["stations"]
 
 
+def load_stations_from_registry() -> list[dict]:
+    """CO2 flux towers with coordinates from the South American registry,
+    normalised to the keys the analysis expects (siteId/lat/lon/ecosystemBiome)."""
+    from pipeline_registry import located_co2_flux_towers
+
+    stations = []
+    for t in located_co2_flux_towers():
+        stations.append(
+            {
+                "siteId": t["site_id"],
+                "lat": t["lat"],
+                "lon": t["lon"],
+                "ecosystemBiome": t.get("biome") or "Unknown",
+            }
+        )
+    return stations
+
+
 def download_worldclim(resolution: str = "10m") -> None:
     """Document + attempt the one-time WorldClim download (needs network).
 
@@ -426,6 +451,8 @@ def download_worldclim(resolution: str = "10m") -> None:
 
 
 def main() -> None:
+    global REGION_BBOX
+
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--demo",
@@ -439,7 +466,21 @@ def main() -> None:
     parser.add_argument(
         "--threshold", type=float, default=DEFAULT_THRESHOLD_SD, help="Similarity threshold (SD)."
     )
+    parser.add_argument(
+        "--region",
+        choices=sorted(REGIONS),
+        default="cono-sur",
+        help="Analysis bounding box (default: cono-sur).",
+    )
+    parser.add_argument(
+        "--stations",
+        choices=["web", "registry"],
+        default="web",
+        help="Station source: 'web' (stations.json) or 'registry' (South American CO2 towers).",
+    )
     args = parser.parse_args()
+
+    REGION_BBOX = REGIONS[args.region]
 
     if args.download:
         download_worldclim(args.resolution)
@@ -447,6 +488,11 @@ def main() -> None:
     grid = load_worldclim_grid(args.resolution)
     if grid is None and args.demo:
         grid = build_demo_climate_grid()
+        if args.region != "cono-sur":
+            print(
+                "Note: the --demo synthetic field is tuned for the Southern Cone; "
+                "for continental scope use real WorldClim rasters (--download)."
+            )
     if grid is None:
         print(
             "No WorldClim rasters found under data/climate/ and --demo not set.\n"
@@ -457,7 +503,7 @@ def main() -> None:
         )
         return
 
-    stations = load_stations()
+    stations = load_stations_from_registry() if args.stations == "registry" else load_stations()
     result = analyse(grid, stations, threshold_sd=args.threshold)
 
     CLIENT_PUBLIC_DATA_DIR.mkdir(parents=True, exist_ok=True)
