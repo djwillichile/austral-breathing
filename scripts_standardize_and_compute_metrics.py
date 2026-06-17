@@ -6,12 +6,14 @@ import re
 import pandas as pd
 import numpy as np
 
-BASE_DIR = Path('/home/ubuntu/eddy-patagonia-chile')
-RAW_DIR = BASE_DIR / 'data' / 'raw'
-PROCESSED_DIR = BASE_DIR / 'data' / 'processed'
-METADATA_DIR = BASE_DIR / 'data' / 'metadata'
-OUTPUTS_TABLES_DIR = BASE_DIR / 'outputs' / 'tables'
-RESEARCH_DIR = BASE_DIR / 'research'
+from pipeline_paths import (
+    BASE_DIR,
+    RAW_DIR,
+    PROCESSED_DIR,
+    METADATA_DIR,
+    OUTPUTS_TABLES_DIR,
+    RESEARCH_DIR,
+)
 
 CORE_MAPPING = {
     'TIMESTAMP': 'timestamp',

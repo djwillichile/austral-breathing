@@ -6,9 +6,9 @@ from zipfile import ZipFile
 import csv
 import json
 
-BASE_DIR = Path('/home/ubuntu/eddy-patagonia-chile')
-RAW_DIR = BASE_DIR / 'data' / 'raw'
-OUTPUT_PATH = BASE_DIR / 'research' / 'flux_schema_summary.json'
+from pipeline_paths import RAW_DIR, RESEARCH_DIR
+
+OUTPUT_PATH = RESEARCH_DIR / 'flux_schema_summary.json'
 
 TARGET_ZIPS = [
     RAW_DIR / 'AMF_CL-SDF_FLUXNET_2014-2021_v1.3_r1.zip',

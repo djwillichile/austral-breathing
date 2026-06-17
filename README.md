@@ -148,14 +148,54 @@ The project is designed to be reproducible from a fresh Python environment with 
 A typical command-line reproduction sequence is shown below. The commands are intentionally explicit so they can later be mirrored in a Google Colab notebook or a CI-like workflow.
 
 ```bash
+pip install -r requirements.txt
 pip install git+https://github.com/fluxnet/shuttle.git
-python scripts_build_station_tables.py
-python scripts_download_fluxnet_data.py --sites CL-SDF CL-SDP CL-ACF AR-TF1 AR-TF2 AR-CCg
+python scripts_discover_southern_cone_stations.py        # discover Southern-Cone catalog
+python scripts_build_station_tables.py                   # target sites derived from the catalog
+python scripts_loop_download_driver.py                   # idempotent, retrying download pass
 python scripts_organize_raw_downloads.py
 python scripts_inspect_flux_schema.py
 python scripts_standardize_and_compute_metrics.py
 python scripts_build_map_and_summaries.py
+python scripts_export_web_data.py                        # emit JSON for the interactive web charts
 ```
+
+## Expanded Southern-Cone discovery and aggressive acquisition
+
+To grow the inventory beyond the original six sites, the pipeline now includes a
+**station-discovery layer** and a **loop-driven download driver**, plus
+**interactive web visualisations**:
+
+- `scripts_discover_southern_cone_stations.py` queries official portals
+  (AmeriFlux public site list, FLUXNET site pages, and `fluxnet-shuttle listall`),
+  filters to the **Southern Cone** (country prefixes `CL/AR/UY/PY/BR` **and**
+  latitude south of `-20°`, so tropical Brazilian sites are excluded), dedupes
+  across networks, and writes a **snapshot-compatible** catalog into `research/`.
+  Because every downstream script reads the newest snapshot, new stations flow
+  through automatically. A `research/southern_cone_discovery_audit.csv` records
+  every discovered site and why it was kept or dropped. Run `--dry-run` to use
+  bundled fixtures with no network.
+- **Respectful scraping**: HTML discovery goes through `pipeline_http.py`, which
+  sets a descriptive User-Agent, honours `robots.txt`, rate-limits per host,
+  retries with backoff (respecting `Retry-After`), and caches responses. Scraping
+  is used **only for discovery/metadata**; actual data is always acquired through
+  the official `fluxnet-shuttle` path, and CC-BY-4.0 attribution is preserved.
+- `scripts_loop_download_driver.py` performs **one idempotent pass per
+  invocation**: it skips stations whose data is already present, retries failed
+  ones with exponential backoff persisted in `download_log.csv`, marks stations
+  that hit the attempt ceiling as `exhausted`, and prints a `LOOP_STATUS:` line
+  plus `logs/loop_status.txt`. It exits `0` when no retriable work remains. This
+  is designed for the `/loop` skill — e.g. `/loop 10m python scripts_loop_download_driver.py`
+  keeps ticking until everything is downloaded, then stops.
+- `scripts_export_web_data.py` now also emits JSON into `client/public/data/`
+  (`stations.json`, `stats.json`, `timeseries/<SITE>.json`) consumed by the
+  React app's **Analysis** section: interactive per-variable time series,
+  cross-station statistics/variability, an environmental-space scatter, biome
+  coverage, and per-station ecological & geographic **representativeness**.
+
+All file paths are resolved through `pipeline_paths.py` (honouring the
+`EDDY_BASE_DIR` environment variable), so the pipeline runs from any checkout.
+Offline logic tests live in `tests/` and run with `python -m pytest tests/`.
 
 | Reproduction requirement | Practical note |
 | --- | --- |

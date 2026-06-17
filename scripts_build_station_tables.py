@@ -1,84 +1,112 @@
 from __future__ import annotations
 
-from pathlib import Path
 import pandas as pd
 
-BASE_DIR = Path('/home/ubuntu/eddy-patagonia-chile')
-RESEARCH_DIR = BASE_DIR / 'research'
-METADATA_DIR = BASE_DIR / 'data' / 'metadata'
-OUTPUTS_TABLES_DIR = BASE_DIR / 'outputs' / 'tables'
+from pipeline_paths import (
+    BASE_DIR,
+    METADATA_DIR,
+    OUTPUTS_TABLES_DIR,
+    latest_snapshot,
+)
+from scripts_discover_southern_cone_stations import is_southern_cone
 
-TARGET_SITES = {
+ACCESS_METHOD = 'fluxnet-shuttle + AmeriFlux/FLUXNET product link'
+
+PREFIX_TO_COUNTRY = {
+    'CL': 'Chile',
+    'AR': 'Argentina',
+    'UY': 'Uruguay',
+    'PY': 'Paraguay',
+    'BR': 'Brazil',
+}
+
+# Hand-written editorial notes for the originally curated six stations.
+# These take precedence over the IGBP-derived defaults for those sites; every
+# other (newly discovered) station gets an auto-generated entry.
+CURATED_NOTES = {
     'CL-SDF': {
-        'country': 'Chile',
         'region_scope': 'Chiloé Island, Northern Patagonia / temperate rainforest region',
         'ecosystem_note': 'Old-growth North Patagonian rainforest',
-        'access_type': 'open',
-        'access_method': 'fluxnet-shuttle + AmeriFlux/FLUXNET product link',
     },
     'CL-SDP': {
-        'country': 'Chile',
         'region_scope': 'Chiloé Island, Northern Patagonia / peatland region',
         'ecosystem_note': 'Peatland / wetland',
-        'access_type': 'open',
-        'access_method': 'fluxnet-shuttle + AmeriFlux/FLUXNET product link',
     },
     'CL-ACF': {
-        'country': 'Chile',
         'region_scope': 'Alerce Costero, southern Chile',
         'ecosystem_note': 'Temperate forest',
-        'access_type': 'open',
-        'access_method': 'fluxnet-shuttle + AmeriFlux/FLUXNET product link',
     },
     'AR-TF1': {
-        'country': 'Argentina',
         'region_scope': 'Tierra del Fuego / Southern Patagonia',
         'ecosystem_note': 'Bog / wetland',
-        'access_type': 'open',
-        'access_method': 'fluxnet-shuttle + AmeriFlux/FLUXNET product link',
     },
     'AR-TF2': {
-        'country': 'Argentina',
         'region_scope': 'Tierra del Fuego / Southern Patagonia',
         'ecosystem_note': 'Bog / wetland',
-        'access_type': 'open',
-        'access_method': 'fluxnet-shuttle + AmeriFlux/FLUXNET product link',
     },
     'AR-CCg': {
-        'country': 'Argentina',
         'region_scope': 'Argentina, included as regional comparator outside core Patagonia',
         'ecosystem_note': 'Grassland',
-        'access_type': 'open',
-        'access_method': 'fluxnet-shuttle + AmeriFlux/FLUXNET product link',
     },
 }
 
 IGBP_TO_BIOME = {
     'EBF': 'Evergreen Broadleaf Forest',
     'ENF': 'Evergreen Needleleaf Forest',
+    'DBF': 'Deciduous Broadleaf Forest',
+    'MF': 'Mixed Forest',
     'WET': 'Wetland',
     'GRA': 'Grassland',
+    'SAV': 'Savanna',
+    'WSA': 'Woody Savanna',
+    'OSH': 'Open Shrubland',
+    'CSH': 'Closed Shrubland',
+    'CRO': 'Cropland',
 }
 
 
 def load_snapshot() -> pd.DataFrame:
-    files = sorted(RESEARCH_DIR.glob('fluxnet_shuttle_snapshot_*.csv'))
-    if not files:
-        raise FileNotFoundError('No fluxnet-shuttle snapshot found in research/.')
-    return pd.read_csv(files[-1])
+    return pd.read_csv(latest_snapshot())
+
+
+def build_target_sites(df: pd.DataFrame) -> dict[str, dict]:
+    """Generate the target-site mapping from the catalog (no hardcoding).
+
+    Country is derived from the site_id prefix; region_scope / ecosystem_note
+    default from the IGBP biome and are overridden by ``CURATED_NOTES`` for the
+    original six stations so their editorial text is preserved verbatim.
+    """
+    targets: dict[str, dict] = {}
+    for _, row in df.iterrows():
+        site_id = row['site_id']
+        if not is_southern_cone(site_id, row.get('location_lat')):
+            continue
+        prefix = str(site_id).split('-', 1)[0].upper()
+        country = PREFIX_TO_COUNTRY.get(prefix, 'Unknown')
+        biome = IGBP_TO_BIOME.get(str(row.get('igbp', '')).strip(), str(row.get('igbp', '')))
+        curated = CURATED_NOTES.get(site_id, {})
+        targets[site_id] = {
+            'country': country,
+            'region_scope': curated.get('region_scope', f'{country} — Southern Cone ({biome})'),
+            'ecosystem_note': curated.get('ecosystem_note', biome or 'Unspecified ecosystem'),
+            'access_type': 'open',
+            'access_method': ACCESS_METHOD,
+        }
+    return targets
 
 
 
 def build_station_metadata(df: pd.DataFrame) -> pd.DataFrame:
-    df = df[df['site_id'].isin(TARGET_SITES.keys())].copy()
-    df['country'] = df['site_id'].map(lambda s: TARGET_SITES[s]['country'])
-    df['regional_scope'] = df['site_id'].map(lambda s: TARGET_SITES[s]['region_scope'])
+    target_sites = build_target_sites(df)
+    df = df[df['site_id'].isin(target_sites.keys())].copy()
+    df['country'] = df['site_id'].map(lambda s: target_sites[s]['country'])
+    df['regional_scope'] = df['site_id'].map(lambda s: target_sites[s]['region_scope'])
     df['ecosystem_biome'] = df['igbp'].map(IGBP_TO_BIOME).fillna(df['igbp'])
-    df['ecosystem_note'] = df['site_id'].map(lambda s: TARGET_SITES[s]['ecosystem_note'])
+    df['ecosystem_note'] = df['site_id'].map(lambda s: target_sites[s]['ecosystem_note'])
     df['temporal_period_available'] = df['first_year'].astype('Int64').astype(str) + '-' + df['last_year'].astype('Int64').astype(str)
     df['download_availability'] = df['download_link'].notna().map({True: 'available', False: 'unknown'})
-    df['access_type'] = df['site_id'].map(lambda s: TARGET_SITES[s]['access_type'])
-    df['access_method'] = df['site_id'].map(lambda s: TARGET_SITES[s]['access_method'])
+    df['access_type'] = df['site_id'].map(lambda s: target_sites[s]['access_type'])
+    df['access_method'] = df['site_id'].map(lambda s: target_sites[s]['access_method'])
     df['official_validation_source'] = df['product_citation'].fillna('AmeriFlux / FLUXNET metadata via fluxnet-shuttle')
 
     cols = [

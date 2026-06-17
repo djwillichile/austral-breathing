@@ -4,17 +4,25 @@ from pathlib import Path
 from zipfile import ZipFile
 import shutil
 
-BASE_DIR = Path('/home/ubuntu/eddy-patagonia-chile')
-RAW_DIR = BASE_DIR / 'data' / 'raw'
+from pipeline_paths import RAW_DIR
 
-TARGET_ZIPS = {
-    'CL-SDF': RAW_DIR / 'AMF_CL-SDF_FLUXNET_2014-2021_v1.3_r1.zip',
-    'CL-SDP': RAW_DIR / 'AMF_CL-SDP_FLUXNET_2014-2021_v1.3_r1.zip',
-    'CL-ACF': RAW_DIR / 'AMF_CL-ACF_FLUXNET_2018-2020_v1.3_r1.zip',
-    'AR-TF1': RAW_DIR / 'AMF_AR-TF1_FLUXNET_2016-2018_v1.3_r1.zip',
-    'AR-TF2': RAW_DIR / 'AMF_AR-TF2_FLUXNET_2016-2018_v1.3_r1.zip',
-    'AR-CCg': RAW_DIR / 'AMF_AR-CCg_FLUXNET_2018-2024_v1.3_r1.zip',
-}
+
+def discover_target_zips() -> dict[str, Path]:
+    """Discover ``<SITE_ID> -> product ZIP`` pairs by scanning ``data/raw/``.
+
+    Catalog-driven (no hardcoded filenames): any ``*.zip`` placed directly in
+    ``RAW_DIR`` whose name contains a FLUXNET site code is mapped to that site.
+    """
+    import re
+
+    site_code = re.compile(r'_([A-Z]{2}-[A-Za-z0-9]{2,})_')
+    targets: dict[str, Path] = {}
+    for zip_path in sorted(RAW_DIR.glob('*.zip')):
+        match = site_code.search(zip_path.name)
+        if match:
+            # Prefer the first/most-complete archive per site.
+            targets.setdefault(match.group(1), zip_path)
+    return targets
 
 
 def pick_member(names: list[str], token: str) -> str:
@@ -55,7 +63,7 @@ def extract_selected_members(zip_copy_path: Path, site_id: str) -> None:
 
 
 def main() -> None:
-    for site_id, zip_path in TARGET_ZIPS.items():
+    for site_id, zip_path in discover_target_zips().items():
         if not zip_path.exists():
             continue
         zip_copy = ensure_original_copy(site_id, zip_path)

@@ -1,14 +1,11 @@
 from __future__ import annotations
 
-from pathlib import Path
 import math
 import pandas as pd
 import folium
 from folium.plugins import Fullscreen
 
-BASE_DIR = Path('/home/ubuntu/eddy-patagonia-chile')
-OUTPUTS_MAPS_DIR = BASE_DIR / 'outputs' / 'maps'
-OUTPUTS_TABLES_DIR = BASE_DIR / 'outputs' / 'tables'
+from pipeline_paths import BASE_DIR, OUTPUTS_MAPS_DIR, OUTPUTS_TABLES_DIR
 
 
 def quality_color(quality_class: str) -> str:

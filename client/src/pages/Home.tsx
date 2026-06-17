@@ -1,6 +1,7 @@
 // Design reminder: regional scientific editorialism with cartographic modernism.
 // Every section should feel like a field atlas plate: asymmetrical, traceable, calm, and publication-oriented.
 
+import { AnalysisSection } from "@/components/charts/AnalysisSection";
 import { LeafletMap } from "@/components/LeafletMap";
 import { projectStats, stationData, type StationRecord } from "@/lib/stationsData";
 import {
@@ -27,6 +28,7 @@ const navigation = [
   { label: "Overview", href: "#overview" },
   { label: "Stations", href: "#stations" },
   { label: "Map", href: "#map" },
+  { label: "Analysis", href: "#analysis" },
   { label: "Methods", href: "#methods" },
   { label: "Results", href: "#results" },
   { label: "About", href: "#about" },
@@ -396,6 +398,8 @@ export default function Home() {
             </div>
           </div>
         </section>
+
+        <AnalysisSection />
 
         <section id="methods" className="atlas-section border-y border-[var(--line-soft)] bg-[var(--paper-muted)]">
           <div className="container space-y-12">
