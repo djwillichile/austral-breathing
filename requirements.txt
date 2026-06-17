@@ -13,5 +13,10 @@ beautifulsoup4
 lxml
 folium
 
+# Optional: only needed to read real WorldClim GeoTIFFs in
+# scripts_representativeness_analysis.py. The numerical core and the synthetic
+# --demo mode run without it.
+# rasterio
+
 # Testing
 pytest

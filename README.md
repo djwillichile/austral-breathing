@@ -189,9 +189,28 @@ To grow the inventory beyond the original six sites, the pipeline now includes a
   keeps ticking until everything is downloaded, then stops.
 - `scripts_export_web_data.py` now also emits JSON into `client/public/data/`
   (`stations.json`, `stats.json`, `timeseries/<SITE>.json`) consumed by the
-  React app's **Analysis** section: interactive per-variable time series,
-  cross-station statistics/variability, an environmental-space scatter, biome
-  coverage, and per-station ecological & geographic **representativeness**.
+  React app's **Analysis** dashboard, which is organized into tabs: interactive
+  per-variable time series, cross-station statistics/variability, the regional
+  **Map**, and **Representativeness** (environmental-space scatter, biome
+  coverage, geographic reach, and the rigorous climate-space surface below).
+- `scripts_representativeness_analysis.py` is the **rigorous representativeness**
+  analysis. It crosses each station with a multivariate climate description of
+  the Southern Cone (WorldClim 2.1 bioclimatic surfaces — annual mean
+  temperature, temperature seasonality, annual precipitation, precipitation
+  seasonality), standardizes the environmental space on the regional grid, and
+  computes the standardized Euclidean distance from every grid cell to the
+  nearest station (Hargrove/Hoffman-style network representativeness). It writes
+  `client/public/data/representativeness_grid.json` (a downsampled
+  representativeness surface plus a per-station representative-area table) which
+  the **Representativeness** tab renders as a coloured map.
+  - Real climate needs a one-time download (outbound access to the WorldClim
+    mirror): `python scripts_representativeness_analysis.py --download`, or drop
+    `wc2.1_<res>_bio_*.tif` files under `data/climate/` and re-run.
+  - Where outbound hosts are blocked, `--demo` builds a **clearly-labelled
+    synthetic** climate field so the visualization and full pipeline can be
+    exercised end to end; every synthetic artifact is tagged `"synthetic": true`
+    and the UI shows a banner. The numerical core is unit-tested offline.
+  - Reading real GeoTIFFs requires the optional `rasterio` dependency.
 
 All file paths are resolved through `pipeline_paths.py` (honouring the
 `EDDY_BASE_DIR` environment variable), so the pipeline runs from any checkout.
