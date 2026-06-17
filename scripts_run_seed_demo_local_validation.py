@@ -1,15 +1,14 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
 
 import folium
 import numpy as np
 import pandas as pd
 from folium.plugins import Fullscreen
 
-BASE_DIR = Path("/home/ubuntu/eddy-patagonia-chile")
-RAW_DIR = BASE_DIR / "data" / "raw"
+from pipeline_paths import BASE_DIR, RAW_DIR
+
 VALIDATION_DIR = BASE_DIR / "outputs" / "seed_demo_local_validation"
 VALIDATION_TABLES_DIR = VALIDATION_DIR / "tables"
 VALIDATION_MAPS_DIR = VALIDATION_DIR / "maps"

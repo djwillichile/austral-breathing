@@ -1,0 +1,17 @@
+# Python dependencies for the eddy-covariance data pipeline.
+# Install with:  pip install -r requirements.txt
+#
+# The official FLUXNET data client is NOT on PyPI. Install it separately to
+# expose the `fluxnet-shuttle` CLI that the download driver shells out to:
+#     pip install git+https://github.com/fluxnet/shuttle.git
+# AmeriFlux data downloads may require registering for AmeriFlux credentials.
+
+pandas
+numpy
+requests
+beautifulsoup4
+lxml
+folium
+
+# Testing
+pytest

@@ -8,6 +8,28 @@ function formatNumber(value: number) {
   return new Intl.NumberFormat("en-US").format(value);
 }
 
+function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number) {
+  const r = 6371;
+  const toRad = (d: number) => (d * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+  return 2 * r * Math.asin(Math.sqrt(a));
+}
+
+/** Indicative representativeness reach: half the distance to the nearest station. */
+function nearestNeighborKm(station: { lat: number; lon: number; siteId: string }) {
+  let nearest = Infinity;
+  stationData.forEach((other) => {
+    if (other.siteId === station.siteId) return;
+    const d = haversineKm(station.lat, station.lon, other.lat, other.lon);
+    if (d < nearest) nearest = d;
+  });
+  return Number.isFinite(nearest) ? nearest : 0;
+}
+
 interface LeafletMapProps {
   className?: string;
 }
@@ -32,6 +54,20 @@ export function LeafletMap({ className }: LeafletMapProps) {
     }).addTo(map);
 
     stationData.forEach((station) => {
+      // Representativeness reach overlay: a translucent disc whose radius is
+      // half the distance to the nearest station (geographic scope proxy).
+      const reachKm = nearestNeighborKm(station) / 2;
+      if (reachKm > 0) {
+        L.circle([station.lat, station.lon] as [number, number], {
+          radius: reachKm * 1000,
+          color: station.qualityColor,
+          weight: 1,
+          opacity: 0.5,
+          fillColor: station.qualityColor,
+          fillOpacity: 0.07,
+        }).addTo(map);
+      }
+
       const size = Math.max(station.markerRadius * 2.6, 22);
 
       const icon = L.divIcon({

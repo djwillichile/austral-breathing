@@ -1,8 +1,8 @@
-from pathlib import Path
 import json
 from textwrap import dedent
 
-BASE_DIR = Path("/home/ubuntu/eddy-patagonia-chile")
+from pipeline_paths import BASE_DIR
+
 NOTEBOOKS_DIR = BASE_DIR / "notebooks"
 NOTEBOOK_PATH = NOTEBOOKS_DIR / "eddy_covariance_pipeline_colab.ipynb"
 

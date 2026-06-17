@@ -2,17 +2,40 @@ from __future__ import annotations
 
 import argparse
 import subprocess
-from pathlib import Path
 import pandas as pd
 
-BASE_DIR = Path('/home/ubuntu/eddy-patagonia-chile')
-RAW_DIR = BASE_DIR / 'data' / 'raw'
-RESEARCH_DIR = BASE_DIR / 'research'
-DOWNLOAD_LOG_PATH = BASE_DIR / 'download_log.csv'
-METADATA_DOWNLOAD_LOG_PATH = BASE_DIR / 'data' / 'metadata' / 'download_log.csv'
-OUTPUTS_DOWNLOAD_LOG_PATH = BASE_DIR / 'outputs' / 'tables' / 'download_log.csv'
+from pipeline_paths import (
+    BASE_DIR,
+    RAW_DIR,
+    DOWNLOAD_LOG_PATH,
+    METADATA_DIR,
+    OUTPUTS_TABLES_DIR,
+    latest_snapshot,
+)
 
-DEFAULT_SITES = ['CL-SDF', 'CL-SDP', 'CL-ACF', 'AR-TF1', 'AR-TF2', 'AR-CCg']
+METADATA_DOWNLOAD_LOG_PATH = METADATA_DIR / 'download_log.csv'
+OUTPUTS_DOWNLOAD_LOG_PATH = OUTPUTS_TABLES_DIR / 'download_log.csv'
+
+
+def default_sites() -> list[str]:
+    """Southern-Cone target sites derived from the latest catalog snapshot.
+
+    Falls back to the original six if the catalog cannot be read."""
+    fallback = ['CL-SDF', 'CL-SDP', 'CL-ACF', 'AR-TF1', 'AR-TF2', 'AR-CCg']
+    try:
+        from scripts_discover_southern_cone_stations import is_southern_cone
+        snapshot = pd.read_csv(latest_snapshot())
+        sites = [
+            row['site_id']
+            for _, row in snapshot.iterrows()
+            if is_southern_cone(row['site_id'], row.get('location_lat'))
+        ]
+        return sites or fallback
+    except Exception:
+        return fallback
+
+
+DEFAULT_SITES = default_sites()
 
 
 def parse_args() -> argparse.Namespace:
@@ -21,14 +44,6 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument('--sites', nargs='*', default=DEFAULT_SITES, help='Site IDs to download.')
     return parser.parse_args()
-
-
-
-def latest_snapshot() -> Path:
-    files = sorted(RESEARCH_DIR.glob('fluxnet_shuttle_snapshot_*.csv'))
-    if not files:
-        raise FileNotFoundError('No fluxnet-shuttle snapshot file found in research/.')
-    return files[-1]
 
 
 

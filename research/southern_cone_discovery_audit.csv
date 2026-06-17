@@ -1,0 +1,59 @@
+site_id,site_name,location_lat,country_prefix,prefix_in_scope,lat_in_scope,kept,discovery_source
+AR-CCg,Carlos Casares grassland,-35.9244,AR,True,True,True,ameriflux;snapshot
+AR-TF1,Rio Moat bog,-54.9733,AR,True,True,True,ameriflux;snapshot
+AR-TF2,Rio Pipo bog,-54.8269,AR,True,True,True,ameriflux;snapshot
+AR-Vir,Virasoro plantation,-28.06,AR,True,True,True,fluxnet
+BR-CST,Caatinga Serra Talhada,-7.97,BR,True,False,False,ameriflux;snapshot
+BR-Sa1,Santarem Km67,-2.856,BR,True,False,False,fluxnet
+CA-ARB,Attawapiskat River Bog,52.695,CA,False,False,False,snapshot
+CA-Ca1,British Columbia - 1949 Douglas-fir stand,49.8673,CA,False,False,False,snapshot
+CA-Ca2,British Columbia - Clearcut Douglas-fir stand (harvested winter 1999/2000),49.8705,CA,False,False,False,snapshot
+CA-DB2,Delta Burns Bog 2,49.119,CA,False,False,False,snapshot
+CA-DBB,Delta Burns Bog,49.1293,CA,False,False,False,snapshot
+CA-DSM,Delta Salt Marsh,49.0887,CA,False,False,False,snapshot
+CA-EM1,Newdale Manitoba,50.3623,CA,False,False,False,snapshot
+CA-EM2,Shoal Lake Manitoba,50.3706,CA,False,False,False,snapshot
+CA-Gro,"Ontario - Groundhog River, Boreal Mixedwood Forest",48.2167,CA,False,False,False,snapshot
+CA-MA1,Manitoba Agricultural Site 1,50.1645,CA,False,False,False,snapshot
+CA-MA2,Manitoba Agricultural Site 2,50.171,CA,False,False,False,snapshot
+CA-MA3,Manitoba Agricultural Site 3,50.1774,CA,False,False,False,snapshot
+CA-Man,Manitoba - Northern Old Black Spruce (former BOREAS Northern Study Area),55.8796,CA,False,False,False,snapshot
+CA-Mer,"Ontario - Eastern Peatland, Mer Bleue",45.4094,CA,False,False,False,snapshot
+CA-Qc2,Quebec - 1975 Harvested Black Spruce (HBS75),49.7598,CA,False,False,False,snapshot
+CA-Qfo,"Quebec - Eastern Boreal, Mature Black Spruce",49.6925,CA,False,False,False,snapshot
+CA-SCB,Scotty Creek Bog,61.3089,CA,False,False,False,snapshot
+CA-TP3,Ontario - Turkey Point 1974 Plantation White Pine,42.7068,CA,False,False,False,snapshot
+CA-TPD,Ontario - Turkey Point Mature Deciduous,42.6353,CA,False,False,False,snapshot
+CL-ACF,Alerce Costero Forest,-40.1726,CL,True,True,True,ameriflux;snapshot
+CL-SDF,Senda Darwin Forest,-41.883,CL,True,True,True,ameriflux;fluxnet;snapshot
+CL-SDP,Senda Darwin Peatland,-41.879,CL,True,True,True,ameriflux;snapshot
+CR-Fsc,Filadelfia sugar cane cropland,10.4189,CR,False,False,False,snapshot
+MX-Tes,"Tesopaco, secondary tropical dry forest",27.8446,MX,False,False,False,snapshot
+PR-xLA,NEON Lajas Experimental Station (LAJA),18.0212,PR,False,False,False,snapshot
+US-A10,ARM-NSA-Barrow,71.3242,US,False,False,False,snapshot
+US-ARc,ARM Southern Great Plains control site- Lamont,35.5465,US,False,False,False,snapshot
+US-Bi1,Bouldin Island Alfalfa,38.0992,US,False,False,False,snapshot
+US-CdM,Cedar Mesa,37.5241,US,False,False,False,snapshot
+US-ONA,Florida pine flatwoods,27.3836,US,False,False,False,snapshot
+US-RRC,Rice Rivers Center Marsh,37.3344,US,False,False,False,snapshot
+US-Ro5,Rosemount I18_South,44.691,US,False,False,False,snapshot
+US-Ro6,Rosemount I18_North,44.6946,US,False,False,False,snapshot
+US-Var,Vaira Ranch,38.4133,US,False,False,False,ameriflux
+US-xAE,NEON Klemme Range Research Station (OAES),35.4106,US,False,False,False,snapshot
+US-xBA,NEON Barrow Environmental Observatory (BARR),71.2824,US,False,False,False,snapshot
+US-xBN,NEON Caribou Creek - Poker Flats Watershed (BONA),65.154,US,False,False,False,snapshot
+US-xBR,NEON Bartlett Experimental Forest (BART),44.0639,US,False,False,False,snapshot
+US-xCL,NEON LBJ National Grassland (CLBJ),33.4012,US,False,False,False,snapshot
+US-xDC,NEON Dakota Coteau Field School (DCFS),47.1617,US,False,False,False,snapshot
+US-xDJ,NEON Delta Junction (DEJU),63.8811,US,False,False,False,snapshot
+US-xDS,NEON Disney Wilderness Preserve (DSNY),28.125,US,False,False,False,snapshot
+US-xHE,NEON Healy (HEAL),63.8757,US,False,False,False,snapshot
+US-xJE,NEON Jones Ecological Research Center (JERC),31.1948,US,False,False,False,snapshot
+US-xNG,NEON Northern Great Plains Research Laboratory (NOGP),46.7697,US,False,False,False,snapshot
+US-xNW,NEON Niwot Ridge Mountain Research Station (NIWO),40.0543,US,False,False,False,snapshot
+US-xPU,NEON Pu'u Maka'ala Natural Area Reserve (PUUM),19.5531,US,False,False,False,snapshot
+US-xRM,"NEON Rocky Mountain National Park, CASTNET (RMNP)",40.2759,US,False,False,False,snapshot
+US-xSB,NEON Ordway-Swisher Biological Station (OSBS),29.6893,US,False,False,False,snapshot
+US-xTL,NEON Toolik (TOOL),68.6611,US,False,False,False,snapshot
+US-xWR,NEON Wind River Experimental Forest (WREF),45.8205,US,False,False,False,snapshot
+UY-PIC,Uruguay Pasture,-33.2,UY,True,True,True,fluxnet

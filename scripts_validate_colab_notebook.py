@@ -1,7 +1,8 @@
-from pathlib import Path
 import json
 
-NOTEBOOK_PATH = Path("/home/ubuntu/eddy-patagonia-chile/notebooks/eddy_covariance_pipeline_colab.ipynb")
+from pipeline_paths import BASE_DIR
+
+NOTEBOOK_PATH = BASE_DIR / "notebooks" / "eddy_covariance_pipeline_colab.ipynb"
 
 if not NOTEBOOK_PATH.exists():
     raise SystemExit(f"Notebook not found: {NOTEBOOK_PATH}")
