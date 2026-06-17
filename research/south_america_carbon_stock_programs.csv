@@ -39,6 +39,6 @@ SISLAC,soil,All Latin America,Soil organic carbon (~49000 profiles),FAO LAC Soil
 SISINTA (INTA),soil,Argentina,National soil database / SOC,INTA,1,sisinta.inta.gob.ar (open),high,https://sisinta.inta.gob.ar
 Embrapa SOC map,soil,Brazil,Soil organic carbon stock 0-30 cm,Embrapa,1,Embrapa GeoInfo download,high,https://www.embrapa.br/en/busca-de-publicacoes/-/publicacao/1085127/
 SoilGrids 2.0 / WoSIS,soil,Global incl. all SA,Gridded SOC stock 250 m,ISRIC,1,isric.org (open),high,https://isric.org/explore/soilgrids
-Sustainable Landscapes Brazil,lidar-biomass,Brazil,Airborne LiDAR -> AGB/carbon (2008-2018),EMBRAPA + USDA Forest Service + NASA CMS,1,ORNL DAAC (open, Earthdata),high,https://daac.ornl.gov/CMS/guides/LiDAR_Forest_Inventory_Brazil.html
+Sustainable Landscapes Brazil,lidar-biomass,Brazil,Airborne LiDAR -> AGB/carbon (2008-2018),EMBRAPA + USDA Forest Service + NASA CMS,1,"ORNL DAAC (open, Earthdata)",high,https://daac.ornl.gov/CMS/guides/LiDAR_Forest_Inventory_Brazil.html
 GEDI L4A,lidar-biomass,Continental (all SA),Spaceborne footprint AGB density,NASA / ORNL DAAC,1,Earthdata / ORNL DAAC (open),high,https://daac.ornl.gov/GEDI/guides/GEDI_L4A_AGB_Density_V2.html
 Brazilian mangrove blue carbon,blue-carbon,Brazil,Mangrove soil + vegetation C stock,Various (Hatje et al.),2,Papers (partly open),medium,https://aslopubs.onlinelibrary.wiley.com/doi/10.1002/lno.11607

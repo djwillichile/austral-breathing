@@ -1,0 +1,24 @@
+{
+  "counts": {
+    "ERROR": 0,
+    "WARN": 0,
+    "INFO": 2
+  },
+  "online": false,
+  "findings": [
+    {
+      "severity": "INFO",
+      "scope": "flux",
+      "record_id": "CO-GV1",
+      "code": "ambiguous-co2",
+      "message": "measures_co2=ambiguous: confirm CO2 flux before relying on it"
+    },
+    {
+      "severity": "INFO",
+      "scope": "flux",
+      "record_id": "VE-Orinoco",
+      "code": "ambiguous-co2",
+      "message": "measures_co2=ambiguous: confirm CO2 flux before relying on it"
+    }
+  ]
+}

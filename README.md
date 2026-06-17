@@ -231,6 +231,16 @@ carbon-**stock** programs are kept strictly separate).
 - `pipeline_registry.py` loads both; `scripts_build_registry_web_data.py` emits
   `client/public/data/regional_inventory.json` for the **Regional inventory**
   dashboard tab (towers by country + stock programs, with tier badges).
+- `scripts_verify_registry.py` **audits** both registries: controlled
+  vocabularies, duplicate ids, canonical `CC-XXX` codes, country-prefix
+  consistency, continental coordinate bounds, year spans, tier/access
+  contradictions, and structural column counts (catching unquoted commas). It
+  exits non-zero on any `ERROR` (CI-gateable) and writes
+  `outputs/tables/registry_verification_report.json`. With `--online` it
+  cross-checks AmeriFlux/FLUXNET-coded towers against the AmeriFlux
+  `site_display` API, degrading gracefully to an `INFO` finding when the host is
+  blocked by a network egress allowlist (so the same command runs locally and in
+  CI). Run: `python scripts_verify_registry.py [--online] [--strict]`.
 - `scripts_harvest_open_flux_data.py` is the **Phase-1 open-data harvester**: it
   selects the tier-1 (open) CO₂ towers, writes a per-site download manifest
   (`outputs/tables/open_flux_harvest_manifest.csv`) grouped by source network,
