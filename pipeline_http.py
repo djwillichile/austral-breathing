@@ -28,8 +28,8 @@ import requests
 from pipeline_paths import RESEARCH_DIR
 
 USER_AGENT = (
-    "eddy-patagonia-chile/1.0 (ecosystem research; "
-    "+https://github.com/djwillichile/eddy-patagonia-chile; "
+    "austral-breathing/1.0 (ecosystem research; "
+    "+https://github.com/djwillichile/austral-breathing; "
     "contact: guillermo.f1990@gmail.com)"
 )
 

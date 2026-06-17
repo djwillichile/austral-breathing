@@ -1,4 +1,9 @@
-# Eddy Covariance Stations in Chile and Patagonia
+# Austral Breathing — A Carbon Atlas of South America
+
+> Formerly *Eddy Covariance Stations in Chile and Patagonia*. The project began
+> with a validated Chile/Patagonia eddy-covariance core and now extends to a
+> continental inventory of carbon-observation infrastructure across South
+> America — both CO₂-**flux** towers and carbon-**stock** programs.
 
 This repository assembles a **reproducible pipeline** for discovering, downloading, organizing, standardizing, and comparing eddy covariance station products from **Chile** and nearby southern South American sites with ecological or geographic relevance to **Patagonia**. The current implementation prioritizes officially distributed, programmatically accessible products and uses a scripted workflow centered on **AmeriFlux / FLUXNET data products** and the public **FLUXNET Shuttle** client rather than manual downloads or HTML scraping [1] [5].
 

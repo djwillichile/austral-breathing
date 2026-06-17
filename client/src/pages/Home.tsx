@@ -214,10 +214,10 @@ export default function Home() {
         <div className="container grid gap-5 py-4 lg:grid-cols-[260px_minmax(0,1fr)] lg:items-center">
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-[0.34em] text-[var(--ink-muted)]">
-              Eddy Covariance Atlas
+              Austral Breathing
             </p>
             <p className="mt-2 font-[var(--font-display)] text-2xl leading-none text-[var(--ink-strong)]">
-              Chile & Patagonia
+              A Carbon Atlas of South America
             </p>
           </div>
           <nav className="flex flex-wrap gap-x-6 gap-y-3 text-[11px] font-semibold uppercase tracking-[0.28em] text-[var(--ink-muted)]">

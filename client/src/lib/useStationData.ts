@@ -136,7 +136,7 @@ export interface RepresentativenessGrid {
 }
 
 function dataUrl(path: string): string {
-  // import.meta.env.BASE_URL ends with "/" (e.g. "/eddy-patagonia-chile/").
+  // import.meta.env.BASE_URL ends with "/" (e.g. "/austral-breathing/").
   return `${import.meta.env.BASE_URL}data/${path}`;
 }
 
