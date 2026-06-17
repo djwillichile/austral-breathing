@@ -51,7 +51,7 @@ from pipeline_paths import OUTPUTS_TABLES_DIR
 MEASURES_CO2 = {"yes", "no", "ambiguous"}
 TIERS = {1, 2, 3}
 CONFIDENCE = {"high", "medium", "low"}
-COORD_NOTE = {"exact", "approx", "unknown"}
+COORD_NOTE = {"exact", "verified", "approx", "unknown"}
 FLUX_NETWORKS = {"AmeriFlux", "FLUXNET2015", "ICOS", "LBA", "AndesFlux", "SulFlux", "none"}
 STOCK_TYPES = {"biomass", "peat", "soil", "lidar-biomass", "blue-carbon", "mixed"}
 
@@ -203,9 +203,9 @@ def verify_flux_towers(records: list[dict]) -> list[Finding]:
                 out.append(Finding("ERROR", "flux", rid, "lon-out-of-range",
                                     f"lon={lon} outside South America {SA_LON}"))
         else:
-            if note == "exact":
+            if note in ("exact", "verified"):
                 out.append(Finding("ERROR", "flux", rid, "exact-without-coords",
-                                    "coord_note=exact but lat/lon are missing"))
+                                    f"coord_note={note} but lat/lon are missing"))
             elif note != "unknown":
                 out.append(Finding("WARN", "flux", rid, "missing-coords",
                                     f"lat/lon missing but coord_note={note!r} (expected 'unknown')"))

@@ -241,6 +241,15 @@ carbon-**stock** programs are kept strictly separate).
   `site_display` API, degrading gracefully to an `INFO` finding when the host is
   blocked by a network egress allowlist (so the same command runs locally and in
   CI). Run: `python scripts_verify_registry.py [--online] [--strict]`.
+- `scripts_reconcile_canonical.py` **reconciles** the flux registry against the
+  canonical AmeriFlux `site_display` metadata: it overwrites coordinates with the
+  authoritative values (marking `coord_note=verified`), normalises site codes to
+  their canonical form, and appends AmeriFlux-registered South American towers
+  that were missing. The canonical snapshots live in `research/_canonical/` and
+  are refreshed by the `.github/workflows/fetch-flux-canonical.yml` workflow,
+  which runs on a GitHub-hosted runner (open outbound internet) and commits the
+  raw AmeriFlux/ORNL/FLUXNET responses back to the branch — a fetch proxy for the
+  canonical hosts that a restricted egress allowlist would otherwise block.
 - `scripts_harvest_open_flux_data.py` is the **Phase-1 open-data harvester**: it
   selects the tier-1 (open) CO₂ towers, writes a per-site download manifest
   (`outputs/tables/open_flux_harvest_manifest.csv`) grouped by source network,
