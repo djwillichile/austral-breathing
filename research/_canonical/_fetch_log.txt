@@ -1,5 +1,4 @@
 200    294742 bytes  https://amfcdn.lbl.gov/api/v1/site_display/AmeriFlux -> ameriflux_site_display.json
 200   2471321 bytes  https://ameriflux.lbl.gov/sites/site-list-and-pages/ -> ameriflux_site_list.html
-522        15 bytes  https://ameriflux-data.lbl.gov/AmeriFlux/SiteSearch.svc/SiteMapData/AmeriFlux -> ameriflux_sitemapdata.json
-200     94373 bytes  https://daac.ornl.gov/LBA/guides/CD32_Brazil_Flux_Network.html -> ornl_lba_cd32.html
+200     94374 bytes  https://daac.ornl.gov/LBA/guides/CD32_Brazil_Flux_Network.html -> ornl_lba_cd32.html
 200     44972 bytes  https://fluxnet.org/sites/site-list-and-pages/ -> fluxnet_site_list.html
