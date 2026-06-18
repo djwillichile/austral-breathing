@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Reconcile the South American flux-tower registry against the canonical
-AmeriFlux ``site_display`` metadata fetched by the GitHub Actions runner
-(research/_canonical/ameriflux_site_display.json).
+AmeriFlux metadata fetched by the GitHub Actions runner into research/_canonical/
+(ameriflux_site_display.json, avail_site_availability.json, siteinfo/*.html).
 
 What it does, deterministically and idempotently:
   1. Loads the 17-column registry CSV, preserving the leading comment block.
@@ -14,17 +14,22 @@ What it does, deterministically and idempotently:
         BR-Ji2 -> BR-Ji3   (Reserva Biologica do Jaru)
         BR-CAX -> BR-Cax   (Caxiuana micromet tower)
   4. Appends AmeriFlux SA sites that are absent from the registry as new
-     ``measures_co2=yes`` rows (AmeriFlux towers measure CO2 by design),
-     conservatively tiered (registered; per-site open-data status to verify).
+     ``measures_co2=yes`` rows (AmeriFlux towers measure CO2 by design).
+  5. Enriches the appended sites (+ BR-CST) from the data-availability snapshot
+     (open BASE/FLUXNET product -> availability_tier=1) and from the per-site
+     siteinfo HTML (PI name + institution).
 
 Run from repo root:  python3 scripts_reconcile_canonical.py
 """
 from __future__ import annotations
-import csv, io, json, os
+import csv, io, json, os, re
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 CSV = os.path.join(ROOT, "research", "south_america_flux_towers.csv")
-AMF = os.path.join(ROOT, "research", "_canonical", "ameriflux_site_display.json")
+CANON = os.path.join(ROOT, "research", "_canonical")
+AMF = os.path.join(CANON, "ameriflux_site_display.json")
+AVAIL = os.path.join(CANON, "avail_site_availability.json")
+SITEINFO = os.path.join(CANON, "siteinfo")
 
 COLS = ["site_id","country","site_name","lat","lon","biome","igbp","network",
         "year_start","year_end","measures_co2","availability_tier","data_access",
@@ -69,6 +74,8 @@ NEW_META = {
 # canonical codes that correspond to EXISTING registry rows (renames) and so
 # must NOT be appended as new rows.
 RENAME_TARGETS = set(RENAMES.values())
+# rows eligible for availability/PI enrichment (curated rows are left untouched).
+ENRICH_TARGETS = set(NEW_META) | {"BR-CST"}
 
 
 def load_amf():
@@ -87,6 +94,53 @@ def load_amf():
                 "url": s.get("URL_AMERIFLUX", "") or "",
                 "country": s.get("COUNTRY", "") or "",
             }
+    return out
+
+
+def load_open_sets():
+    """Return (open_codes, flux_codes) from the AmeriFlux data-availability
+    snapshot. A site is 'open' if it exposes a downloadable BASE-BADM product
+    (CC-BY-4.0 or LEGACY policy) or a FLUXNET product."""
+    open_codes, flux_codes = set(), set()
+    if not os.path.exists(AVAIL):
+        return open_codes, flux_codes
+    av = json.load(open(AVAIL, encoding="utf-8"))
+
+    def codes(section):
+        out = set()
+        sec = av.get(section, {})
+        lists = sec.values() if isinstance(sec, dict) else [sec]
+        for lst in lists:
+            for it in lst or []:
+                out.add(it[0] if isinstance(it, list) else it)
+        return out
+
+    flux_codes = codes("FLUXNET")
+    open_codes = codes("BASE-BADM") | flux_codes
+    return open_codes, flux_codes
+
+
+def parse_pi(codes):
+    """Extract '(name, institution)' for each code from its committed AmeriFlux
+    siteinfo HTML snapshot (mailto anchor + email stripped)."""
+    out = {}
+    for sid in codes:
+        p = os.path.join(SITEINFO, f"{sid}.html")
+        if not os.path.exists(p):
+            continue
+        html = open(p, encoding="utf-8", errors="replace").read()
+        m = re.search(r'class="team"><td>PI:\s*</td><td>(.*?)</td>', html, re.S)
+        if not m:
+            continue
+        raw = re.sub(r"<[^>]+>", "", m.group(1))      # drop the mailto anchor
+        raw = re.sub(r"\S+@\S+", "", raw)             # drop the email address
+        raw = re.sub(r"\s+", " ", raw).strip(" -")
+        if " - " in raw:
+            name, inst = (x.strip() for x in raw.rsplit(" - ", 1))
+        else:
+            name, inst = raw.strip(), ""
+        if name:
+            out[sid] = (name, inst)
     return out
 
 
@@ -148,7 +202,31 @@ def main():
             "institution_pi": "see AmeriFlux site page", "confidence": "high",
             "coord_note": "verified", "source_url": a["url"],
         })
+        present_upper.add(sid.upper())
         n_new += 1
+
+    # enrichment: data availability (tier/access) + PI metadata, from canonical
+    # snapshots. Targeted to ENRICH_TARGETS so curated rows are not clobbered.
+    open_codes, flux_codes = load_open_sets()
+    pi_map = parse_pi(set(NEW_META))
+    n_pi, n_open, n_closed = 0, 0, 0
+    for r in rows:
+        sid = r["site_id"]
+        if sid in pi_map:
+            name, inst = pi_map[sid]
+            r["institution_pi"] = f"{inst} / {name}" if inst else name
+            n_pi += 1
+        if sid in ENRICH_TARGETS:
+            if sid in open_codes:
+                r["availability_tier"] = "1"
+                r["data_access"] = ("AmeriFlux BASE + FLUXNET (CC-BY-4.0)"
+                                    if sid in flux_codes else
+                                    "AmeriFlux BASE (CC-BY-4.0)")
+                n_open += 1
+            else:
+                r["data_access"] = ("AmeriFlux registered; no open BASE/FLUXNET "
+                                    "product yet (request PI)")
+                n_closed += 1
 
     # write back
     buf = io.StringIO()
@@ -162,6 +240,9 @@ def main():
     print(f"coords -> verified   : {n_coord}")
     print(f"blank igbp/years fill: {n_fill}")
     print(f"new sites appended   : {n_new}")
+    print(f"PI enriched          : {n_pi}")
+    print(f"upgraded to open(T1) : {n_open}")
+    print(f"kept closed (T2)     : {n_closed}")
     print(f"total rows           : {len(rows)}")
 
 
