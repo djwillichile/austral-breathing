@@ -1,12 +1,16 @@
 name: regenerate-registry-data
 
 # Regenerates the registry-derived artifacts from the curated CSV + the
-# canonical snapshots in research/_canonical/. Run this (manually) after the
-# fetch-flux-canonical proxy refreshes the snapshots, or after editing the
-# reconciliation logic. Commits the regenerated files back to the branch.
+# canonical snapshots in research/_canonical/. Triggers on changes to the
+# reconciliation source (NOT the derived files, so committing results does not
+# re-trigger), or manually. Commits the regenerated files back to the branch.
 
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - scripts_reconcile_canonical.py
+      - .github/workflows/regenerate-registry-data.yml
 
 permissions:
   contents: write
@@ -18,7 +22,7 @@ jobs:
       - name: Checkout branch
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.ref_name }}
+          ref: ${{ github.head_ref || github.ref_name }}
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -44,5 +48,5 @@ jobs:
             echo "nothing to commit"
           else
             git commit -m "Regenerate registry-derived data (reconcile+enrich/build/harvest) [skip ci]"
-            git push origin HEAD:${{ github.ref_name }}
+            git push origin HEAD:${{ github.head_ref || github.ref_name }}
           fi
