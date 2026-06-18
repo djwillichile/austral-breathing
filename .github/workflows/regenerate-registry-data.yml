@@ -1,0 +1,48 @@
+name: regenerate-registry-data
+
+# Regenerates the registry-derived artifacts from the curated CSV + the
+# canonical snapshots in research/_canonical/. Run this (manually) after the
+# fetch-flux-canonical proxy refreshes the snapshots, or after editing the
+# reconciliation logic. Commits the regenerated files back to the branch.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  regen:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Reconcile + verify + build + harvest
+        run: |
+          set -e
+          python3 scripts_reconcile_canonical.py
+          python3 scripts_verify_registry.py
+          python3 scripts_build_registry_web_data.py
+          python3 scripts_harvest_open_flux_data.py
+
+      - name: Commit derived data
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add research/south_america_flux_towers.csv \
+                  client/public/data/regional_inventory.json \
+                  outputs/tables/open_flux_harvest_manifest.csv
+          if git diff --cached --quiet; then
+            echo "nothing to commit"
+          else
+            git commit -m "Regenerate registry-derived data (reconcile+enrich/build/harvest) [skip ci]"
+            git push origin HEAD:${{ github.ref_name }}
+          fi
