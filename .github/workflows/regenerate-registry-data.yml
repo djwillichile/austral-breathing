@@ -10,6 +10,7 @@ on:
   push:
     paths:
       - scripts_reconcile_canonical.py
+      - scripts_build_outreach_plan.py
       - .github/workflows/regenerate-registry-data.yml
 
 permissions:
@@ -36,14 +37,19 @@ jobs:
           python3 scripts_verify_registry.py
           python3 scripts_build_registry_web_data.py
           python3 scripts_harvest_open_flux_data.py
+          python3 scripts_build_outreach_plan.py
 
       - name: Commit derived data
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          # Note: the Phase-2 tracker (phase2_outreach_tracker.csv) is intentionally
+          # NOT regenerated here — it is seeded once and holds manual outreach progress.
           git add research/south_america_flux_towers.csv \
                   client/public/data/regional_inventory.json \
-                  outputs/tables/open_flux_harvest_manifest.csv
+                  outputs/tables/open_flux_harvest_manifest.csv \
+                  outputs/tables/phase2_outreach_contacts.csv \
+                  research/phase2_outreach_plan.md
           if git diff --cached --quiet; then
             echo "nothing to commit"
           else
