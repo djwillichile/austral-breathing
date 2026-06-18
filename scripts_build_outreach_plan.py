@@ -359,13 +359,16 @@ def build_plan_markdown(rows: list[dict]) -> str:
     lines.append("")
     lines.append("La representatividad climática real "
                  "(`client/public/data/representativeness_grid.json`) requiere los "
-                 "rasters WorldClim 2.1 desde `geodata.ucdavis.edu`. En este entorno "
-                 "ese host está bloqueado por egress (HTTP 403 `host_not_allowed`), "
-                 "por lo que el grid real queda pendiente. Para generarlo: habilitar "
-                 "egress a `geodata.ucdavis.edu` o precargar `wc2.1_*_bio_*.tif` en "
-                 "`data/climate/` y correr "
-                 "`python scripts_representativeness_analysis.py --region south-america "
-                 "--stations registry` (sin `--demo`).")
+                 "rasters WorldClim 2.1 desde `geodata.ucdavis.edu`. Ese host está "
+                 "bloqueado por egress en el entorno de desarrollo (HTTP 403 "
+                 "`host_not_allowed`), por lo que el cálculo se delega al workflow "
+                 "`.github/workflows/representativeness.yml`: corre en un runner de "
+                 "Actions (internet abierto), descarga WorldClim (5m por defecto), "
+                 "ejecuta el análisis continental "
+                 "(`--region south-america --stations registry`) y commitea solo el "
+                 "grid JSON (los `.tif` no se versionan). También puede correrse local "
+                 "con egress habilitado o precargando `wc2.1_*_bio_*.tif` en "
+                 "`data/climate/`.")
     lines.append("")
     return "\n".join(lines)
 
