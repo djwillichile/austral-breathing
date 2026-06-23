@@ -64,6 +64,12 @@ REGIONS = {
     "south-america": {"lon_min": -82.0, "lon_max": -34.0, "lat_min": -56.0, "lat_max": 13.0},
 }
 
+# Human-readable region names for the grid ``source`` provenance label.
+REGION_LABELS = {
+    "cono-sur": "the Southern Cone",
+    "south-america": "South America",
+}
+
 # Default region (kept as a module global so the grid/sampling helpers can read
 # it; ``main`` overrides it from --region).
 REGION_BBOX = REGIONS["cono-sur"]
@@ -188,7 +194,7 @@ def coverage_fraction(dist: np.ndarray, weights: np.ndarray, threshold: float) -
 # --------------------------------------------------------------------------
 # Climate sources: real WorldClim rasters (optional) or synthetic demo field
 # --------------------------------------------------------------------------
-def load_worldclim_grid(resolution: str = "10m") -> ClimateGrid | None:
+def load_worldclim_grid(resolution: str = "10m", region_label: str = "the Southern Cone") -> ClimateGrid | None:
     """Load WorldClim 2.1 bioclim GeoTIFFs cropped to ``REGION_BBOX``.
 
     Expects files like ``data/climate/wc2.1_<res>_bio_1.tif`` (the layout of the
@@ -231,7 +237,7 @@ def load_worldclim_grid(resolution: str = "10m") -> ClimateGrid | None:
         data=data,
         variables=list(BIOCLIM_VARS),
         synthetic=False,
-        source=f"WorldClim 2.1 bioclim ({resolution}), cropped to the Southern Cone",
+        source=f"WorldClim 2.1 bioclim ({resolution}), cropped to {region_label}",
     )
 
 
@@ -485,7 +491,7 @@ def main() -> None:
     if args.download:
         download_worldclim(args.resolution)
 
-    grid = load_worldclim_grid(args.resolution)
+    grid = load_worldclim_grid(args.resolution, REGION_LABELS.get(args.region, args.region))
     if grid is None and args.demo:
         grid = build_demo_climate_grid()
         if args.region != "cono-sur":
