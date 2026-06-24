@@ -41,9 +41,9 @@ jobs:
       - name: Build
         run: pnpm build
         env:
-          # Derive the Pages base path from the repository name so the site keeps
-          # working across repository renames with no manual edits.
-          GITHUB_PAGES_BASE: /${{ github.event.repository.name }}/
+          # El sitio se publica bajo un dominio propio (ver client/public/CNAME),
+          # por lo que se sirve desde la raiz y el base path es "/".
+          GITHUB_PAGES_BASE: /
           CI: true
 
       - name: Upload Pages artifact
