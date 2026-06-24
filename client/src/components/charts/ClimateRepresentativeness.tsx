@@ -1,7 +1,6 @@
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { useEffect, useRef } from "react";
-import { stationData } from "@/lib/stationsData";
 import {
   representativenessColor,
   useRepresentativenessGrid,
@@ -50,8 +49,10 @@ function RepresentativenessSurface({ data }: { data: RepresentativenessGrid }) {
       }
     }
 
-    // Station markers on top of the surface.
-    stationData.forEach((s) => {
+    // Station markers on top of the surface — driven by the analysed network
+    // itself, so they always match the grid's region and station set.
+    data.perStation.forEach((s) => {
+      if (s.lat === null || s.lon === null) return;
       L.circleMarker([s.lat, s.lon], {
         radius: 5,
         color: "#ffffff",
@@ -59,7 +60,7 @@ function RepresentativenessSurface({ data }: { data: RepresentativenessGrid }) {
         fillColor: "#1c2a20",
         fillOpacity: 1,
       })
-        .bindTooltip(`${s.siteId} · ${s.siteName}`, { direction: "top" })
+        .bindTooltip(`${s.siteId} · ${s.biome}`, { direction: "top" })
         .addTo(map);
     });
 
@@ -102,7 +103,7 @@ function LegendRamp() {
 
 /**
  * Rigorous environmental representativeness: a climate-space view of how much
- * of the Southern Cone the station network stands in for. Renders only once
+ * of its region the station network stands in for. Renders only once
  * `representativeness_grid.json` has been produced by
  * `scripts_representativeness_analysis.py`; otherwise it explains how to build it.
  */
@@ -126,7 +127,7 @@ export function ClimateRepresentativeness() {
           A regional climate-space representativeness surface
         </h3>
         <p className="mt-4 text-sm leading-7 text-[var(--ink-soft)]">
-          This view maps how well the network represents the Southern Cone in multivariate climate space, using
+          This view maps how well the network represents its region in multivariate climate space, using
           WorldClim bioclimatic surfaces. The analysis layer has not been generated for this build. Produce it with:
         </p>
         <pre className="mt-4 overflow-x-auto rounded-xl bg-[var(--paper-strong)] p-4 text-xs leading-6 text-[var(--ink-strong)]">
@@ -144,7 +145,7 @@ python scripts_representativeness_analysis.py --demo`}
     <article className="atlas-card">
       <p className="section-eyebrow">Representativeness · climate space</p>
       <h3 className="mt-2 font-[var(--font-display)] text-2xl text-[var(--ink-strong)]">
-        How much of the Southern Cone the network represents in climate space
+        How much of {data.regionLabel ?? "the region"} the network represents in climate space
       </h3>
 
       {data.synthetic && (

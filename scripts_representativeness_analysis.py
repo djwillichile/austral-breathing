@@ -73,6 +73,7 @@ REGION_LABELS = {
 # Default region (kept as a module global so the grid/sampling helpers can read
 # it; ``main`` overrides it from --region).
 REGION_BBOX = REGIONS["cono-sur"]
+_REGION_LABEL = REGION_LABELS["cono-sur"]
 
 # WorldClim 2.1 bioclimatic variables used as the environmental axes. Mean and
 # seasonality of both temperature and precipitation capture the dominant
@@ -346,6 +347,8 @@ def analyse(
         per_station.append(
             {
                 "siteId": st["siteId"],
+                "lat": st.get("lat"),
+                "lon": st.get("lon"),
                 "biome": st.get("ecosystemBiome") or st.get("biome") or "Unknown",
                 "representativeAreaKm2": round(rep_area, 1),
                 "representativeAreaPct": round(100.0 * rep_area / total_area, 2)
@@ -368,6 +371,7 @@ def analyse(
         ),
         "source": grid.source,
         "synthetic": grid.synthetic,
+        "regionLabel": _REGION_LABEL,
         "variables": [{"id": v, "label": BIOCLIM_VARS.get(v, v)} for v in grid.variables],
         "bbox": REGION_BBOX,
         "resolutionDeg": round(dlat, 4),
@@ -457,7 +461,7 @@ def download_worldclim(resolution: str = "10m") -> None:
 
 
 def main() -> None:
-    global REGION_BBOX
+    global REGION_BBOX, _REGION_LABEL
 
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -487,6 +491,7 @@ def main() -> None:
     args = parser.parse_args()
 
     REGION_BBOX = REGIONS[args.region]
+    _REGION_LABEL = REGION_LABELS.get(args.region, args.region)
 
     if args.download:
         download_worldclim(args.resolution)
