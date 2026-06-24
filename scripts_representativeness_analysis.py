@@ -6,7 +6,7 @@ nearest-neighbour "geographic reach" proxy already exported by
 
 Method (Hargrove/Hoffman-style network representativeness)
 ----------------------------------------------------------
-1. Take a multivariate climate description of the Southern Cone on a regular
+1. Take a multivariate climate description of the analysis region on a regular
    grid (WorldClim 2.1 bioclimatic surfaces, cropped to the region).
 2. Sample the same climate variables at every flux-tower location.
 3. Standardise every climate variable to zero mean / unit variance using the
@@ -64,9 +64,16 @@ REGIONS = {
     "south-america": {"lon_min": -82.0, "lon_max": -34.0, "lat_min": -56.0, "lat_max": 13.0},
 }
 
+# Human-readable region names for the grid ``source`` provenance label.
+REGION_LABELS = {
+    "cono-sur": "the Southern Cone",
+    "south-america": "South America",
+}
+
 # Default region (kept as a module global so the grid/sampling helpers can read
 # it; ``main`` overrides it from --region).
 REGION_BBOX = REGIONS["cono-sur"]
+_REGION_LABEL = REGION_LABELS["cono-sur"]
 
 # WorldClim 2.1 bioclimatic variables used as the environmental axes. Mean and
 # seasonality of both temperature and precipitation capture the dominant
@@ -188,7 +195,7 @@ def coverage_fraction(dist: np.ndarray, weights: np.ndarray, threshold: float) -
 # --------------------------------------------------------------------------
 # Climate sources: real WorldClim rasters (optional) or synthetic demo field
 # --------------------------------------------------------------------------
-def load_worldclim_grid(resolution: str = "10m") -> ClimateGrid | None:
+def load_worldclim_grid(resolution: str = "10m", region_label: str = "the Southern Cone") -> ClimateGrid | None:
     """Load WorldClim 2.1 bioclim GeoTIFFs cropped to ``REGION_BBOX``.
 
     Expects files like ``data/climate/wc2.1_<res>_bio_1.tif`` (the layout of the
@@ -231,7 +238,7 @@ def load_worldclim_grid(resolution: str = "10m") -> ClimateGrid | None:
         data=data,
         variables=list(BIOCLIM_VARS),
         synthetic=False,
-        source=f"WorldClim 2.1 bioclim ({resolution}), cropped to the Southern Cone",
+        source=f"WorldClim 2.1 bioclim ({resolution}), cropped to {region_label}",
     )
 
 
@@ -340,6 +347,8 @@ def analyse(
         per_station.append(
             {
                 "siteId": st["siteId"],
+                "lat": st.get("lat"),
+                "lon": st.get("lon"),
                 "biome": st.get("ecosystemBiome") or st.get("biome") or "Unknown",
                 "representativeAreaKm2": round(rep_area, 1),
                 "representativeAreaPct": round(100.0 * rep_area / total_area, 2)
@@ -362,6 +371,7 @@ def analyse(
         ),
         "source": grid.source,
         "synthetic": grid.synthetic,
+        "regionLabel": _REGION_LABEL,
         "variables": [{"id": v, "label": BIOCLIM_VARS.get(v, v)} for v in grid.variables],
         "bbox": REGION_BBOX,
         "resolutionDeg": round(dlat, 4),
@@ -430,28 +440,50 @@ def load_stations_from_registry() -> list[dict]:
     return stations
 
 
-def download_worldclim(resolution: str = "10m") -> None:
+def download_worldclim(resolution: str = "10m", retries: int = 4) -> None:
     """Document + attempt the one-time WorldClim download (needs network).
 
-    Kept deliberately simple and explicit so it can be run wherever outbound
-    access to the UC Davis mirror is permitted."""
+    The UC Davis mirror is large (hundreds of MB) and occasionally stalls, so the
+    download is streamed in chunks (a per-read timeout that a slow-but-steady
+    transfer never trips) and retried with backoff — a single-shot ``requests.get``
+    with a short read timeout fails intermittently otherwise."""
     import io
+    import time
     import zipfile
 
     import requests
 
     CLIMATE_DIR.mkdir(parents=True, exist_ok=True)
     url = f"{WORLDCLIM_BASE}wc2.1_{resolution}_bio.zip"
-    print(f"Downloading {url} ...")
-    resp = requests.get(url, timeout=120)
-    resp.raise_for_status()
-    with zipfile.ZipFile(io.BytesIO(resp.content)) as zf:
-        zf.extractall(CLIMATE_DIR)
-    print(f"Extracted WorldClim bioclim rasters to {CLIMATE_DIR}")
+    last_err: Exception | None = None
+    for attempt in range(1, retries + 1):
+        try:
+            print(f"Downloading {url} (attempt {attempt}/{retries}) ...")
+            buf = io.BytesIO()
+            # (connect timeout, read timeout): generous read so steady streaming
+            # over a slow link is not killed mid-transfer.
+            with requests.get(url, timeout=(30, 600), stream=True) as resp:
+                resp.raise_for_status()
+                for chunk in resp.iter_content(chunk_size=1 << 20):
+                    if chunk:
+                        buf.write(chunk)
+            buf.seek(0)
+            with zipfile.ZipFile(buf) as zf:
+                zf.extractall(CLIMATE_DIR)
+            print(f"Extracted WorldClim bioclim rasters to {CLIMATE_DIR}")
+            return
+        except Exception as err:  # network/zip errors are retryable
+            last_err = err
+            print(f"  download attempt {attempt} failed: {err}")
+            if attempt < retries:
+                time.sleep(5 * attempt)
+    raise RuntimeError(
+        f"WorldClim download failed after {retries} attempts: {last_err}"
+    )
 
 
 def main() -> None:
-    global REGION_BBOX
+    global REGION_BBOX, _REGION_LABEL
 
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -481,11 +513,12 @@ def main() -> None:
     args = parser.parse_args()
 
     REGION_BBOX = REGIONS[args.region]
+    _REGION_LABEL = REGION_LABELS.get(args.region, args.region)
 
     if args.download:
         download_worldclim(args.resolution)
 
-    grid = load_worldclim_grid(args.resolution)
+    grid = load_worldclim_grid(args.resolution, REGION_LABELS.get(args.region, args.region))
     if grid is None and args.demo:
         grid = build_demo_climate_grid()
         if args.region != "cono-sur":

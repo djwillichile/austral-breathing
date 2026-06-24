@@ -108,6 +108,7 @@ export interface RepresentativenessGrid {
   method: string;
   source: string;
   synthetic: boolean;
+  regionLabel?: string;
   variables: { id: string; label: string }[];
   bbox: { lon_min: number; lon_max: number; lat_min: number; lat_max: number };
   resolutionDeg: number;
@@ -127,6 +128,8 @@ export interface RepresentativenessGrid {
   };
   perStation: {
     siteId: string;
+    lat: number | null;
+    lon: number | null;
     biome: string;
     representativeAreaKm2: number;
     representativeAreaPct: number;

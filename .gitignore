@@ -118,3 +118,7 @@ __pycache__/
 
 # Respectful HTTP cache for station discovery (transient)
 research/.http_cache/
+
+# WorldClim bioclim rasters (hundreds of MB; fetched on-demand by the
+# representativeness workflow, never committed — only the derived grid JSON is)
+data/climate/

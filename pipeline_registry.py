@@ -75,6 +75,17 @@ def open_co2_flux_towers(path: Path | None = None) -> list[dict]:
     ]
 
 
+def outreach_co2_flux_towers(path: Path | None = None) -> list[dict]:
+    """Restricted-access (tier 2/3), CO2-measuring towers — the Phase-2 outreach
+    target set: published-but-not-archived (tier 2) and national/private (tier 3)
+    sites whose data must be obtained by contacting the operator/PI."""
+    return [
+        r
+        for r in load_flux_towers(path)
+        if r.get("measures_co2") == "yes" and r.get("availability_tier") in (2, 3)
+    ]
+
+
 def located_co2_flux_towers(path: Path | None = None) -> list[dict]:
     """CO2 flux towers with known coordinates — usable by the spatial analysis."""
     return [
