@@ -440,24 +440,46 @@ def load_stations_from_registry() -> list[dict]:
     return stations
 
 
-def download_worldclim(resolution: str = "10m") -> None:
+def download_worldclim(resolution: str = "10m", retries: int = 4) -> None:
     """Document + attempt the one-time WorldClim download (needs network).
 
-    Kept deliberately simple and explicit so it can be run wherever outbound
-    access to the UC Davis mirror is permitted."""
+    The UC Davis mirror is large (hundreds of MB) and occasionally stalls, so the
+    download is streamed in chunks (a per-read timeout that a slow-but-steady
+    transfer never trips) and retried with backoff — a single-shot ``requests.get``
+    with a short read timeout fails intermittently otherwise."""
     import io
+    import time
     import zipfile
 
     import requests
 
     CLIMATE_DIR.mkdir(parents=True, exist_ok=True)
     url = f"{WORLDCLIM_BASE}wc2.1_{resolution}_bio.zip"
-    print(f"Downloading {url} ...")
-    resp = requests.get(url, timeout=120)
-    resp.raise_for_status()
-    with zipfile.ZipFile(io.BytesIO(resp.content)) as zf:
-        zf.extractall(CLIMATE_DIR)
-    print(f"Extracted WorldClim bioclim rasters to {CLIMATE_DIR}")
+    last_err: Exception | None = None
+    for attempt in range(1, retries + 1):
+        try:
+            print(f"Downloading {url} (attempt {attempt}/{retries}) ...")
+            buf = io.BytesIO()
+            # (connect timeout, read timeout): generous read so steady streaming
+            # over a slow link is not killed mid-transfer.
+            with requests.get(url, timeout=(30, 600), stream=True) as resp:
+                resp.raise_for_status()
+                for chunk in resp.iter_content(chunk_size=1 << 20):
+                    if chunk:
+                        buf.write(chunk)
+            buf.seek(0)
+            with zipfile.ZipFile(buf) as zf:
+                zf.extractall(CLIMATE_DIR)
+            print(f"Extracted WorldClim bioclim rasters to {CLIMATE_DIR}")
+            return
+        except Exception as err:  # network/zip errors are retryable
+            last_err = err
+            print(f"  download attempt {attempt} failed: {err}")
+            if attempt < retries:
+                time.sleep(5 * attempt)
+    raise RuntimeError(
+        f"WorldClim download failed after {retries} attempts: {last_err}"
+    )
 
 
 def main() -> None:
