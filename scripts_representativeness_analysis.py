@@ -6,7 +6,7 @@ nearest-neighbour "geographic reach" proxy already exported by
 
 Method (Hargrove/Hoffman-style network representativeness)
 ----------------------------------------------------------
-1. Take a multivariate climate description of the Southern Cone on a regular
+1. Take a multivariate climate description of the analysis region on a regular
    grid (WorldClim 2.1 bioclimatic surfaces, cropped to the region).
 2. Sample the same climate variables at every flux-tower location.
 3. Standardise every climate variable to zero mean / unit variance using the
